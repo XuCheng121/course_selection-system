@@ -1,28 +1,22 @@
-from core import admin, student, teacher
+# Author: Mr.Xu
 
+# 进入视图接口
 
-func_dic = {
-    '1': admin.admin_view,
-    '2': student.student_view,
-    '3': teacher.teacher_view,
+from conf import settings
+from . import admin,student,teacher
+
+func_dict = {
+    "1": admin.admin_view,
+    "2": teacher.tercher_view,
+    "3": student.student_view,
 }
 
 def run():
-    while True:
-        print('''
-        1.管理员视图
-        2.学生视图
-        3.老师视图
-        q.退出
-        ''')
-
-        choice = input('请选择视图:').strip()
-
-        if choice == 'q':
+    while 1:
+        print(settings.VIEW_MSG)
+        index = input("请输入功能列表")
+        if index == "q":
             break
+        if index in func_dict:
+            func_dict[index]()
 
-        if choice not in func_dic:
-            print('选择有误!')
-            continue
-
-        func_dic.get(choice)()

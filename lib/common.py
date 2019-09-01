@@ -1,36 +1,25 @@
+# Author: Mr.Xu
 
-
+# 登陆装饰器
 def login_auth(role):
+    from core import admin,student,teacher
     def auth(func):
-        from core import admin, student, teacher
         def inner(*args, **kwargs):
-
-            if role == 'admin':
-                if admin.admin_info.get('user'):
+            if role == "admin":
+                if admin.user_dic.get("user"):
                     res = func(*args, **kwargs)
                     return res
-
-                else:
-                    admin.login()
-
-            elif role == 'student':
-                if student.student_info.get('user'):
+                admin.login()
+            elif role == "student":
+                if student.user_dic.get("user"):
                     res = func(*args, **kwargs)
                     return res
-                else:
-                    student.login()
+                student.login()
 
-            elif role == 'teacher':
-                if teacher.teacher_info.get('user'):
+            elif role == "teacher":
+                if teacher.user_dic.get("user"):
                     res = func(*args, **kwargs)
                     return res
-
-                else:
-                    teacher.login()
-
-            else:
-                print('权限不足!')
-
-
+                teacher.login()
         return inner
     return auth

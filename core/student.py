@@ -1,148 +1,113 @@
-from interface import student_interface
-from interface import common_interface
-from lib import common
-student_info = {
-    'user': None
-}
+# Author: Mr.Xu
 
+from conf import settings
+from lib import common
+from interface import student_interface,common_interface
+
+# 用户信息
+user_dic = {
+    "user" : None
+}
 
 def register():
-    while True:
-        username = input('请输入用户名:').strip()
-        password = input('请输入密码:').strip()
-        re_password = input('请确认密码:').strip()
+    print("register...")
 
-        if password == re_password:
-            flag, msg = student_interface.register_interface(username, password)
-            if flag:
-                print(msg)
-                break
+    user = input("请输入账户")
+    pwd = input("请输入密码")
+    pwd_true = input("请确认密码")
 
-            else:
-                print(msg)
-        else:
-            print('两次密码不一致!')
+    if pwd != pwd_true:
+        print("两次密码不一致")
+        return
+
+    flag = student_interface.register_interface(user,pwd)
+    if flag:
+        print("注册成功")
+
 
 def login():
-    while True:
-        username = input('请输入用户名').strip()
-        password = input('请输入密码').strip()
-        flag, msg = common_interface.login_interface(username, password, user_type='student')
+    print("login...")
+
+    user = input("请输入账户")
+    pwd = input("请输入密码")
+
+    flag = student_interface.login_interface(user, pwd)
+    if flag:
+        user_dic["user"] = user
+        print("登陆成功")
+
+
+@common.login_auth("student")
+def choice_school():
+    print("choice_school...")
+
+    school_list = common_interface.get_school_list()
+    if not school_list:
+        print("没有学校")
+        return
+
+    for i, school in enumerate(school_list):
+        print(f"学校编号:{i} {school}")
+
+    index = input("请输入选择的学校编号")
+
+    if index.isdigit() and int(index) in range(len(school_list)):
+        index = int(index)
+
+        school_name = school_list[index]
+        flag = student_interface.choice_school_interface(user_dic["user"],school_name)
         if flag:
-            print(msg)
-            student_info['user'] = username
-            break
+            print(f"选择学校成功 {school_name}")
+
+    else:
+        print("输入错误")
+
+
+@common.login_auth("student")
+def choice_course():
+    print("choice_course...")
+
+    course_list = student_interface.get_course_list(user_dic["user"])
+    if course_list:
+        for i, course in enumerate(course_list):
+            print(f"学校编号{i} {course}")
+
+        index = input("请输入选择的学校编号")
+
+        if index.isdigit() and int(index) in range(len(course_list)):
+            index = int(index)
+
+            course_name = course_list[index]
+
+            flag = student_interface.choice_course_interface(user_dic["user"], course_name)
+            if flag:
+                print(f"成功选择课程: {course_name}")
         else:
-            print(msg)
-
-@common.login_auth('student')
-def choose_school():
-    while True:
-        school_list = common_interface.get_school_interface()
-        for index, school in enumerate(school_list):
-            print(index, school)
-
-        choice = input('请输入选择的学校编号:').strip()
-
-        # 如果不是数字
-        if not choice.isdigit():
-            print('必须是数字!')
-            continue
-
-        choice = int(choice)
-
-        if choice not in range(len(school_list)):
-            print('必须输入正确学校编号!')
-            continue
-
-        school_name = school_list[choice]
-
-        flag, msg = student_interface.choose_school_interface(
-            student_info.get('user'), school_name)
-        if flag:
-            print(msg)
-            break
-        else:
-            print(msg)
-
-@common.login_auth('student')
-def choose_course():
-    while True:
-
-        # 1.获取学生下学校所有的课程
-        flag, course_list_or_msg = student_interface.get_course_interface(
-            student_info.get('user'))
-
-        if not flag:
-            print(course_list_or_msg)
-            break
-
-        if not course_list_or_msg:
-            print('没有课程')
-            break
-
-        for index, course in enumerate(course_list_or_msg):
-            print(index, course)
-
-        choice = input('请选择课程编号:').strip()
-
-        if not choice.isdigit():
-            print('请输入数字!')
-            continue
-
-        choice = int(choice)
-
-        if choice not in range(len(course_list_or_msg)):
-            print('请选择正确编号')
-            continue
-
-        course_name = course_list_or_msg[choice]
-
-        flag, msg = student_interface.choose_course_interface(
-            student_info.get('user'), course_name)
-
-        if flag:
-            print(msg)
-            break
-
-        else:
-            print(msg)
-
-    pass
-
-@common.login_auth('student')
-def check_score():
-    score_dic = student_interface.check_score_interface(student_info.get('user'))
-    print(score_dic)
+            print("输入错误")
 
 
-func_dic = {
-    '1': register,
-    '2': login,
-    '3': choose_school,
-    '4': choose_course,
-    '5': check_score,
-}
+@common.login_auth("student")
+def show_score():
+    print("show_score...")
 
+    score = student_interface.show_score_interface(user_dic["user"])
+    if score:
+        print(score)
+    
+
+# 学生视图
 def student_view():
-    while True:
-        print('''
-        1.注册
-        2.登录
-        3.选择学校
-        4.选择课程
-        5.查看成绩
-        q.退出
-        ''')
-
-        choice = input('请选择学生功能:').strip()
-
-        if choice == 'q':
+    func_dict = {
+        "1": register,
+        "2": login,
+        "3": choice_school,
+        "4": choice_course,
+        "5": show_score,
+    }
+    while 1:
+        print(settings.STUDENT_MENU)
+        index = input("请输入功能列表")
+        if index == "q":
             break
-
-        if choice not in func_dic:
-            print('选择有误!')
-            continue
-
-        func_dic.get(choice)()
-
+        if index in func_dict:
+            func_dict[index]()
